@@ -71,3 +71,51 @@ v=np.clip(v,0,255)
 imghsv=cv2.merge([h,s,v])
 saturated=cv2.cvtColor(img3.astype('uint8'),cv2.COLOR_HSV2BGR)
 # used for saturation
+
+kernel = np.array([[-1, -1, -1], [-1, 9.5, -1], [-1, -1, -1]])
+img_sharpen = cv2.filter2D(img3, -1, kernel)
+cv2_imshow(img_sharpen)
+# Sharpern the image
+
+img_sepia = np.array(img3, dtype=np.float64) # converting to float to prevent loss
+img_sepia = cv2.transform(img_sepia, np.matrix([[0.272, 0.534, 0.131],
+                                    [0.349, 0.686, 0.168],
+                                    [0.393, 0.769, 0.189]])) # multipying image with special sepia matrix
+img_sepia[np.where(img_sepia > 255)] = 255 # normalizing values greater than 255 to 255
+img_sepia = np.array(img_sepia, dtype=np.uint8)
+cv2_imshow(img_sepia)
+# Sepia filter
+
+
+hdr = cv2.detailEnhance(img3, sigma_s=12, sigma_r=0.15)
+
+# Hdr filter
+
+inv = cv2.bitwise_not(img3)
+
+# Invert Filter
+
+
+from scipy.interpolate import UnivariateSpline
+def LookupTable(x, y):
+  spline = UnivariateSpline(x, y)
+  return spline(range(256))
+
+
+increaseLookupTable = LookupTable([0, 64, 128, 256], [0, 80, 160, 256])
+decreaseLookupTable = LookupTable([0, 64, 128, 256], [0, 50, 100, 256])
+blue_channel, green_channel,red_channel  = cv2.split(img3)
+red_channel = cv2.LUT(red_channel, increaseLookupTable).astype(np.uint8)
+blue_channel = cv2.LUT(blue_channel, decreaseLookupTable).astype(np.uint8)
+sum= cv2.merge((blue_channel, green_channel, red_channel ))
+
+# Summer filter
+
+increaseLookupTable = LookupTable([0, 64, 128, 256], [0, 80, 160, 256])
+decreaseLookupTable = LookupTable([0, 64, 128, 256], [0, 50, 100, 256])
+blue_channel, green_channel,red_channel = cv2.split(img3)
+red_channel = cv2.LUT(red_channel, decreaseLookupTable).astype(np.uint8)
+blue_channel = cv2.LUT(blue_channel, increaseLookupTable).astype(np.uint8)
+win= cv2.merge((blue_channel, green_channel, red_channel))
+
+#Winter Filter
